@@ -1,2 +1,3 @@
 logs/
 scripts/iperf3_server.pids
+scripts/iperf3_started_ports.txt

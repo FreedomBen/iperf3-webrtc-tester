@@ -4,6 +4,7 @@
 set -euo pipefail
 
 PID_FILE="${PID_FILE:-scripts/iperf3_server.pids}"
+STARTED_PORTS_FILE="${STARTED_PORTS_FILE:-scripts/iperf3_started_ports.txt}"
 
 if [[ ! -f "$PID_FILE" ]]; then
   echo "No pid file found at $PID_FILE"
@@ -18,4 +19,5 @@ while read -r pid; do
 done < "$PID_FILE"
 
 rm -f "$PID_FILE"
+rm -f "$STARTED_PORTS_FILE"
 echo "Stopped iperf3 servers listed in $PID_FILE"
