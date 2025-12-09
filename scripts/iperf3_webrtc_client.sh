@@ -11,6 +11,7 @@ MEDIA_RANGE_DEFAULT="30000-30005"
 STARTED_PORTS_FILE="${STARTED_PORTS_FILE:-scripts/iperf3_started_ports.txt}"
 ALLOW_PRIV_PORTS="${ALLOW_PRIV_PORTS:-0}"
 SLEEP_BETWEEN="${SLEEP_BETWEEN:-0}" # seconds to pause between ports
+MAX_RETRIES="${MAX_RETRIES:-5}"
 
 command -v iperf3 >/dev/null 2>&1 || { echo "iperf3 is required" >&2; exit 1; }
 
@@ -83,22 +84,38 @@ echo "Testing against $SERVER_HOST for duration ${DURATION}s (UDP bw $UDP_BW) on
 
 run_tcp() {
   local port="$1"
+  local attempt rc
   echo ""
   echo "TCP port $port"
-  if ! iperf3 -c "$SERVER_HOST" -p "$port" -t "$DURATION"; then
-    local rc=$?
-    echo "TCP port $port FAILED (exit $rc)" >&2
-  fi
+  for attempt in $(seq 1 "$MAX_RETRIES"); do
+    if iperf3 -c "$SERVER_HOST" -p "$port" -t "$DURATION"; then
+      return 0
+    fi
+    rc=$?
+    echo "TCP port $port attempt $attempt FAILED (exit $rc)" >&2
+    if (( attempt < MAX_RETRIES )); then
+      echo "Retrying TCP port $port..." >&2
+    fi
+  done
+  echo "TCP port $port FAILED after $MAX_RETRIES attempts" >&2
 }
 
 run_udp() {
   local port="$1"
+  local attempt rc
   echo ""
   echo "UDP port $port"
-  if ! iperf3 -c "$SERVER_HOST" -p "$port" -u -b "$UDP_BW" -t "$DURATION"; then
-    local rc=$?
-    echo "UDP port $port FAILED (exit $rc)" >&2
-  fi
+  for attempt in $(seq 1 "$MAX_RETRIES"); do
+    if iperf3 -c "$SERVER_HOST" -p "$port" -u -b "$UDP_BW" -t "$DURATION"; then
+      return 0
+    fi
+    rc=$?
+    echo "UDP port $port attempt $attempt FAILED (exit $rc)" >&2
+    if (( attempt < MAX_RETRIES )); then
+      echo "Retrying UDP port $port..." >&2
+    fi
+  done
+  echo "UDP port $port FAILED after $MAX_RETRIES attempts" >&2
 }
 
 for port in "${PORT_LIST[@]}"; do
