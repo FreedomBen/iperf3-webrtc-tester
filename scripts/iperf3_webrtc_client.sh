@@ -85,14 +85,20 @@ run_tcp() {
   local port="$1"
   echo ""
   echo "TCP port $port"
-  iperf3 -c "$SERVER_HOST" -p "$port" -t "$DURATION"
+  if ! iperf3 -c "$SERVER_HOST" -p "$port" -t "$DURATION"; then
+    local rc=$?
+    echo "TCP port $port FAILED (exit $rc)" >&2
+  fi
 }
 
 run_udp() {
   local port="$1"
   echo ""
   echo "UDP port $port"
-  iperf3 -c "$SERVER_HOST" -p "$port" -u -b "$UDP_BW" -t "$DURATION"
+  if ! iperf3 -c "$SERVER_HOST" -p "$port" -u -b "$UDP_BW" -t "$DURATION"; then
+    local rc=$?
+    echo "UDP port $port FAILED (exit $rc)" >&2
+  fi
 }
 
 for port in "${PORT_LIST[@]}"; do

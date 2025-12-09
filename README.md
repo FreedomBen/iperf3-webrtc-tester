@@ -31,5 +31,6 @@ SERVER_HOST=10.0.0.5 ./scripts/iperf3_webrtc_client.sh
 # Optional: DURATION=10 UDP_BW=20M PORTS="80,443,3478" MEDIA_RANGE="30000-30010"
 # When testing locally without root, privileged ports (<1024) will be skipped automatically.
 # To pace the tests, set SLEEP_BETWEEN=<seconds> (e.g., SLEEP_BETWEEN=2).
+# Client continues through the port list even if an individual TCP/UDP test fails.
 ```
 Each port is tested twice (TCP then UDP). Make sure the server script is running on the target host first.
