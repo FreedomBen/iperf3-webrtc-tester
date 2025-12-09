@@ -6,7 +6,7 @@ set -euo pipefail
 
 PORTS_DEFAULT="80 443 3478 5349 19302"
 #MEDIA_RANGE_DEFAULT="10000-10005" # small sample of common media UDP ports
-MEDIA_RANGE_DEFAULT="30000-32767" # small sample of common media UDP ports
+MEDIA_RANGE_DEFAULT="30000-30005" # small sample of common media UDP ports
 LOG_DIR="${LOG_DIR:-logs}"
 PID_FILE="${PID_FILE:-scripts/iperf3_server.pids}"
 

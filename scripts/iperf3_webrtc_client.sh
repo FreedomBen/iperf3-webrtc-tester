@@ -7,7 +7,7 @@ SERVER_HOST="${SERVER_HOST:-127.0.0.1}"
 DURATION="${DURATION:-5}"
 UDP_BW="${UDP_BW:-10M}"
 PORTS_DEFAULT="80 443 3478 5349 19302"
-MEDIA_RANGE_DEFAULT="10000-10005"
+MEDIA_RANGE_DEFAULT="30000-30005"
 
 command -v iperf3 >/dev/null 2>&1 || { echo "iperf3 is required" >&2; exit 1; }
 
