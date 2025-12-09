@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Run iperf3 tests against the WebRTC port set (TCP then UDP).
+
+set -euo pipefail
+
+SERVER_HOST="${SERVER_HOST:-127.0.0.1}"
+DURATION="${DURATION:-5}"
+UDP_BW="${UDP_BW:-10M}"
+PORTS_DEFAULT="80 443 3478 5349 19302"
+MEDIA_RANGE_DEFAULT="10000-10005"
+
+command -v iperf3 >/dev/null 2>&1 || { echo "iperf3 is required" >&2; exit 1; }
+
+normalize_ports() {
+  local raw="$1"
+  raw="${raw//,/ }"
+  echo "$raw"
+}
+
+expand_range() {
+  local range="$1"
+  if [[ "$range" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+    local start="${BASH_REMATCH[1]}"
+    local end="${BASH_REMATCH[2]}"
+    if (( start > end )); then
+      echo "Invalid range: $range" >&2
+      exit 1
+    fi
+    seq "$start" "$end"
+  else
+    echo "$range"
+  fi
+}
+
+collect_ports() {
+  local raw_ports
+  raw_ports="$(normalize_ports "${PORTS:-$PORTS_DEFAULT}") $(normalize_ports "${MEDIA_RANGE:-$MEDIA_RANGE_DEFAULT}")"
+  declare -A seen=()
+  local p
+  for token in $raw_ports; do
+    for p in $(expand_range "$token"); do
+      [[ -n "$p" ]] || continue
+      if [[ -z "${seen[$p]:-}" ]]; then
+        echo "$p"
+        seen["$p"]=1
+      fi
+    done
+  done
+}
+
+PORT_LIST=($(collect_ports))
+
+echo "Testing against $SERVER_HOST for duration ${DURATION}s (UDP bw $UDP_BW) on ports: ${PORT_LIST[*]}"
+
+run_tcp() {
+  local port="$1"
+  echo ""
+  echo "TCP port $port"
+  iperf3 -c "$SERVER_HOST" -p "$port" -t "$DURATION"
+}
+
+run_udp() {
+  local port="$1"
+  echo ""
+  echo "UDP port $port"
+  iperf3 -c "$SERVER_HOST" -p "$port" -u -b "$UDP_BW" -t "$DURATION"
+}
+
+for port in "${PORT_LIST[@]}"; do
+  run_tcp "$port"
+  run_udp "$port"
+done
