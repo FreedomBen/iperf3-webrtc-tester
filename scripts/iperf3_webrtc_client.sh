@@ -10,6 +10,7 @@ PORTS_DEFAULT="80 443 3478 5349 19302"
 MEDIA_RANGE_DEFAULT="30000-30005"
 STARTED_PORTS_FILE="${STARTED_PORTS_FILE:-scripts/iperf3_started_ports.txt}"
 ALLOW_PRIV_PORTS="${ALLOW_PRIV_PORTS:-0}"
+SLEEP_BETWEEN="${SLEEP_BETWEEN:-0}" # seconds to pause between ports
 
 command -v iperf3 >/dev/null 2>&1 || { echo "iperf3 is required" >&2; exit 1; }
 
@@ -102,4 +103,7 @@ for port in "${PORT_LIST[@]}"; do
   fi
   run_tcp "$port"
   run_udp "$port"
+  if [[ "$SLEEP_BETWEEN" != "0" ]]; then
+    sleep "$SLEEP_BETWEEN"
+  fi
 done
